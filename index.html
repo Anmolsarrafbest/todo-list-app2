@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo List App</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body { margin: 20px; }
+        .completed { text-decoration: line-through; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center">Todo List</h1>
+        <form id="todo-form" class="mb-3">
+            <div class="input-group">
+                <input type="text" id="todo-input" class="form-control" placeholder="Add a new task" required>
+                <div class="input-group-append">
+                    <button class="btn btn-primary" type="submit">Add Task</button>
+                </div>
+            </div>
+        </form>
+        <ul id="todo-list" class="list-group"></ul>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script>
+        // Wait for the DOM to be fully loaded
+        $(document).ready(function() {
+            // Load tasks from localStorage
+            loadTasks();
+
+            // Handle form submission
+            $('#todo-form').on('submit', function(event) {
+                event.preventDefault(); // Prevent page reload
+                addTask();
+            });
+
+            // Function to add a task
+            function addTask() {
+                const taskText = $('#todo-input').val().trim();
+                if (taskText) {
+                    const task = { text: taskText, completed: false };
+                    // Save task to localStorage
+                    saveTask(task);
+                    // Clear input field
+                    $('#todo-input').val('');
+                }
+            }
+
+            // Function to save task to localStorage
+            function saveTask(task) {
+                const tasks = getTasks();
+                tasks.push(task);
+                localStorage.setItem('tasks', JSON.stringify(tasks));
+                renderTasks(); // Re-render the tasks
+            }
+
+            // Function to get tasks from localStorage
+            function getTasks() {
+                const tasks = localStorage.getItem('tasks');
+                return tasks ? JSON.parse(tasks) : [];
+            }
+
+            // Function to load tasks on page load
+            function loadTasks() {
+                renderTasks();
+            }
+
+            // Function to render tasks
+            function renderTasks() {
+                const tasks = getTasks();
+                $('#todo-list').empty(); // Clear list
+                tasks.forEach((task, index) => {
+                    const taskItem = $(`<li class='list-group-item d-flex justify-content-between align-items-center'>
+                        <span class='${task.completed ? 'completed' : ''}'>${task.text}</span>
+                        <button class='btn btn-danger btn-sm' data-index='${index}'>Delete</button>
+                    </li>`);
+                    // Event listener for marking complete
+                    taskItem.find('span').on('click', function() {
+                        toggleComplete(index);
+                    });
+                    // Event listener for delete button
+                    taskItem.find('button').on('click', function() {
+                        deleteTask(index);
+                    });
+                    $('#todo-list').append(taskItem);
+                });
+            }
+
+            // Function to toggle task completion
+            function toggleComplete(index) {
+                const tasks = getTasks();
+                tasks[index].completed = !tasks[index].completed;
+                localStorage.setItem('tasks', JSON.stringify(tasks));
+                renderTasks(); // Re-render the tasks
+            }
+
+            // Function to delete a task
+            function deleteTask(index) {
+                const tasks = getTasks();
+                tasks.splice(index, 1); // Remove task
+                localStorage.setItem('tasks', JSON.stringify(tasks));
+                renderTasks(); // Re-render the tasks
+            }
+        });
+    </script>
+</body>
+</html>
